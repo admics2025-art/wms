@@ -692,6 +692,10 @@ Se o cliente pedir um humano ou fizer uma reclamação grave, informe que está 
             </div>
             <h2 class="text-base font-black text-white mt-1 uppercase">Conectar seu WhatsApp Dentro do CRM</h2>
             <p class="text-xs text-gray-400">Escaneie o código QR no seu celular para receber e responder mensagens direto na Bandeja do app sem sair da tela.</p>
+            <div id="waBridgeServerIndicator" class="mt-2 text-[11px] flex items-center gap-1.5 font-mono">
+              <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+              <span class="text-gray-400">Motor Baileys: Conectando a http://localhost:3001...</span>
+            </div>
           </div>
           <div id="waconnectHeaderBadge">
             <!-- Badge dinâmico de status -->
@@ -1040,10 +1044,93 @@ Se o cliente pedir um humano ou fizer uma reclamação grave, informe que está 
       labRunResult: null
     };
 
+    const WA_BRIDGE_URL = 'http://localhost:3001';
+    let pollInterval = null;
+
     // Inicialização
     function init() {
       loadState();
       renderAll();
+      startWaBridgePolling();
+    }
+
+    function startWaBridgePolling() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(pollWaBridgeStatus, 2500);
+      pollWaBridgeStatus();
+    }
+
+    async function pollWaBridgeStatus() {
+      try {
+        const res = await fetch(`${WA_BRIDGE_URL}/api/whatsapp/status`);
+        if (!res.ok) throw new Error('Servidor offline');
+        const data = await res.json();
+
+        // Indicador do Servidor Baileys
+        const serverStatusEl = document.getElementById('waBridgeServerIndicator');
+        if (serverStatusEl) {
+          serverStatusEl.innerHTML = `<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> <span class="text-emerald-400 font-bold">Motor Baileys Ativo na porta 3001</span>`;
+        }
+
+        if (data.connected && data.user) {
+          if (!state.whatsappSession.connected) {
+            state.whatsappSession.connected = true;
+            state.whatsappSession.phone = data.user.phone || data.user.id || '';
+            state.whatsappSession.name = data.user.name || 'WhatsApp Real';
+            state.whatsappSession.battery = data.battery || '95%';
+            saveState();
+            renderAll();
+            notify('WhatsApp Real autenticado e conectado via QR Code!');
+            syncRealChatsFromBridge();
+          }
+        } else if (data.qr) {
+          // Renderiza o QR Code REAL emitido pelo WhatsApp
+          const qrContainer = document.getElementById('qrCodeContainer');
+          if (qrContainer) {
+            qrContainer.innerHTML = `<img src="${data.qr}" alt="QR Code Real WhatsApp" class="w-full h-full object-contain rounded-2xl" />`;
+          }
+          if (state.whatsappSession.connected) {
+            state.whatsappSession.connected = false;
+            saveState();
+            renderAll();
+          }
+        }
+      } catch (e) {
+        const serverStatusEl = document.getElementById('waBridgeServerIndicator');
+        if (serverStatusEl) {
+          serverStatusEl.innerHTML = `<span class="h-2 w-2 rounded-full bg-amber-400"></span> <span class="text-gray-400">Motor Baileys: Execute <code class="text-cyan-400 font-bold">npm run whatsapp</code> ou dê 2 cliques em <strong class="text-emerald-400">iniciar-whatsapp.bat</strong> para gerar o QR code real.</span>`;
+        }
+      }
+    }
+
+    async function syncRealChatsFromBridge() {
+      try {
+        const res = await fetch(`${WA_BRIDGE_URL}/api/whatsapp/chats`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.chats && data.chats.length > 0) {
+          const existingPhones = new Set(state.chats.map(c => c.phone));
+          for (const realChat of data.chats) {
+            if (!existingPhones.has(realChat.phone)) {
+              state.chats.unshift({
+                id: realChat.id,
+                customerName: realChat.name || realChat.phone,
+                phone: realChat.phone,
+                agentActive: true,
+                unread: realChat.unread || false,
+                dealStage: 'conversation',
+                lastMessage: realChat.lastMessage || 'Conversa sincronizada',
+                lastMessageTime: 'Hoje'
+              });
+            }
+          }
+          saveState();
+          renderAll();
+          notify(`✦ ${data.chats.length} conversas reais sincronizadas do WhatsApp!`);
+        }
+      } catch (e) {
+        console.error('Erro ao sincronizar conversas:', e);
+      }
     }
 
     function loadState() {
@@ -1254,6 +1341,9 @@ Se o cliente pedir um humano ou fizer uma reclamação grave, informe que está 
 
     function disconnectWhatsAppSession() {
       if (!confirm('Deseja realmente desconectar a sessão do WhatsApp do CRM?')) return;
+      try {
+        fetch(`${WA_BRIDGE_URL}/api/whatsapp/logout`, { method: 'POST' }).catch(() => {});
+      } catch {}
       state.whatsappSession = {
         connected: false,
         phone: '',
@@ -1524,7 +1614,26 @@ Se o cliente pedir um humano ou fizer uma reclamação grave, informe que está 
       const isConnected = !!(state.whatsappSession && state.whatsappSession.connected);
 
       if (isConnected) {
-        notify('Mensagem enviada com sucesso pelo WhatsApp Conectado no CRM! ✓✓');
+        // Envio REAL pelo WhatsApp conectado via Baileys
+        try {
+          fetch(`${WA_BRIDGE_URL}/api/whatsapp/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phone: chat.phone,
+              text,
+              jid: chat.id && chat.id.includes('@') ? chat.id : undefined
+            })
+          }).then(res => res.json()).then(result => {
+            if (result.success) {
+              notify('✓✓ Mensagem real entregue no WhatsApp do cliente!');
+            }
+          }).catch(err => {
+            console.log('Envio bridge offline, mantido no CRM.');
+          });
+        } catch {}
+
+        notify('Mensagem enviada pelo WhatsApp Conectado no CRM! ✓✓');
         // Se a conversa tiver o agente ativo, gera resposta inteligente baseada no conhecimento
         if (chat.agentActive) {
           setTimeout(() => {

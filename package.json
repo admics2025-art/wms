@@ -7,6 +7,7 @@
     "backend"
   ],
   "scripts": {
+    "whatsapp": "npm --prefix backend run whatsapp",
     "dev:frontend": "npm --prefix frontend run dev",
     "build:frontend": "npm --prefix frontend run build",
     "typecheck:frontend": "npm --prefix frontend run typecheck",
