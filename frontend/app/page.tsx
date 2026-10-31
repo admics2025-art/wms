@@ -20,11 +20,15 @@ import {
   Lock,
   Smartphone,
   ExternalLink,
+  FlaskConical,
+  Bot,
 } from 'lucide-react';
 import WhatsAppConnectionPanel, {
   WhatsAppGatewayConfig,
 } from '@/components/whatsapp/whatsapp-connection-panel';
 import WhatsAppChatLayout from '@/components/whatsapp/chat-layout';
+import { VoceroLabView } from '@/components/lab/lab-view';
+import { AgentConfigView } from '@/components/agent/agent-config-view';
 import {
   CrmPipelineDeal,
   STORAGE_KEYS,
@@ -50,6 +54,8 @@ type ActiveModule =
   | 'wms'
   | 'whatsapp'
   | 'waconfig'
+  | 'lab'
+  | 'agent'
   | 'audit';
 
 function formatBrlFromCents(cents: number): string {
@@ -652,6 +658,47 @@ export default function OmniFlowCrmEnterpriseApp() {
             );
           })}
 
+          <p className="mt-6 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-widest text-amber-400">
+            Inteligência Artificial (Vocero)
+          </p>
+
+          {[
+            {
+              id: 'lab',
+              label: 'Laboratório IA (Vocero)',
+              icon: FlaskConical,
+            },
+            {
+              id: 'agent',
+              label: 'Agente & Conhecimento',
+              icon: Bot,
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            const active = activeModule === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveModule(item.id as ActiveModule)}
+                className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
+                  active
+                    ? 'bg-gradient-to-r from-amber-500/20 to-orange-600/10 text-amber-300 border border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]'
+                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <Icon
+                    className={`h-4 w-4 ${
+                      active ? 'text-amber-400' : 'text-slate-500'
+                    }`}
+                  />
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+
           <p className="mt-6 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-widest text-slate-500">
             WMS & Segurança
           </p>
@@ -749,6 +796,8 @@ export default function OmniFlowCrmEnterpriseApp() {
               {activeModule === 'wms' && 'Inventário WMS // Endereçamento Físico'}
               {activeModule === 'whatsapp' && 'Central WhatsApp // Multi-Atendente'}
               {activeModule === 'waconfig' && 'Conexão WhatsApp Web // Configurações Personalizadas'}
+              {activeModule === 'lab' && 'Laboratório de Auto-Avaliação IA // Estilo Vocero'}
+              {activeModule === 'agent' && 'Agente IA & Base de Conhecimento // Brain'}
               {activeModule === 'audit' && 'Audit Logs // Trilha Imutável'}
             </h2>
           </div>
@@ -1423,6 +1472,12 @@ export default function OmniFlowCrmEnterpriseApp() {
               onSaveConfig={handleSaveWaConfig}
             />
           )}
+
+          {/* 9. LABORATÓRIO IA VOCERO */}
+          {activeModule === 'lab' && <VoceroLabView />}
+
+          {/* 10. AGENTE IA & CONHECIMENTO */}
+          {activeModule === 'agent' && <AgentConfigView />}
         </main>
       </div>
 
