@@ -25,3 +25,4 @@ const app: FirebaseApp | null = isFirebaseConfigured
 export const clientAuth: Auth | null = app ? getAuth(app) : null;
 export const clientDb: Firestore | null = app ? getFirestore(app) : null;
 export const clientStorage: FirebaseStorage | null = app ? getStorage(app) : null;
+

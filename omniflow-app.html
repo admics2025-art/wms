@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OMNIFLOW OS // Cyber-Enterprise CRM & WMS</title>
+  <title>OMNIFLOW OS // Cyber-Enterprise CRM, WMS & WhatsApp Web</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
@@ -25,7 +25,6 @@
     ==================================================================== -->
     <aside class="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-[#050811]/95 flex flex-col justify-between backdrop-blur-2xl">
       <div>
-        <!-- Brand Header -->
         <div class="p-5 border-b border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-600 text-slate-950 flex items-center justify-center font-black text-sm shadow-[0_0_25px_rgba(6,182,212,0.5)]">
@@ -33,18 +32,16 @@
             </div>
             <div>
               <h1 class="font-black text-sm tracking-wider uppercase text-white">OMNIFLOW <span class="text-cyan-400">OS</span></h1>
-              <span class="font-mono text-xs text-cyan-400">● ZERO-MOCK ENGINE</span>
+              <span id="sidebarWaBadge" class="font-mono text-xs text-emerald-400">● WHATSAPP WEB ATIVO</span>
             </div>
           </div>
         </div>
 
-        <!-- Workspace / Tenant ID -->
         <div class="p-4 border-b border-white/10 space-y-1.5 bg-white/[0.02]">
           <label class="font-mono text-xs uppercase text-cyan-400 block">Workspace / Company ID</label>
           <input id="tenantInput" type="text" value="tenant_production_01" onchange="saveState()" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2 font-mono text-xs text-white focus:border-cyan-500 focus:outline-none" />
         </div>
 
-        <!-- Navigation -->
         <nav class="p-3.5 space-y-1.5">
           <p class="px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-slate-500">Core CRM</p>
           <button onclick="go('dashboard')" id="nav-dashboard" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition bg-gradient-to-r from-cyan-500/20 to-blue-600/10 text-cyan-300 border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
@@ -59,8 +56,12 @@
             <span id="count-customers" class="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 font-mono text-xs text-cyan-300">0</span>
           </button>
           <button onclick="go('whatsapp')" id="nav-whatsapp" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-slate-400 hover:bg-white/5 hover:text-white">
-            <span>💬 WhatsApp Neural Hub</span>
+            <span>💬 Central WhatsApp</span>
             <span id="count-chats" class="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 font-mono text-xs text-cyan-300">0</span>
+          </button>
+          <button onclick="go('waconfig')" id="nav-waconfig" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20">
+            <span>📲 Conexão & Config WhatsApp</span>
+            <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 font-mono text-xs">WEB</span>
           </button>
 
           <p class="px-3 pt-4 pb-1 font-mono text-xs font-bold uppercase tracking-widest text-slate-500">WMS & Compliance</p>
@@ -80,6 +81,10 @@
       </div>
 
       <div class="p-4 border-t border-white/10 bg-white/[0.01] space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-xs text-slate-400">Operador:</span>
+          <input id="operatorInput" type="text" value="Admin Master" onchange="saveState()" class="w-36 rounded-lg border border-white/10 bg-[#03060c] px-2 py-1 text-xs text-white text-right" />
+        </div>
         <div class="flex items-center justify-between">
           <span class="font-mono text-xs text-slate-400">JWT Claim Role:</span>
           <select id="roleSelect" class="rounded-lg border border-white/10 bg-[#03060c] px-2.5 py-1 font-mono text-xs text-cyan-300">
@@ -102,10 +107,13 @@
       <header class="border-b border-white/10 bg-[#050811]/85 px-6 py-4 flex flex-wrap items-center justify-between gap-3 backdrop-blur-xl">
         <div>
           <h2 id="headerTitle" class="text-sm font-black uppercase tracking-wider text-white">COMMAND CENTER // TELEMETRIA EM TEMPO REAL</h2>
-          <p class="text-xs text-slate-400">Zero dados fictícios — todos os registros que você criar ficam salvos no seu navegador.</p>
+          <p class="text-xs text-slate-400">Conexão nativa com WhatsApp Web da pessoa + Configurações personalizáveis.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <button onclick="go('waconfig')" class="px-3.5 py-2 rounded-xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition">
+            📲 Configurar WhatsApp Web
+          </button>
           <button onclick="openModal('customer')" class="px-3.5 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-bold text-slate-200 hover:bg-white/10 transition">
             + Cliente B2B
           </button>
@@ -138,17 +146,57 @@
           <div class="rounded-2xl border border-white/10 bg-[#070b16]/90 p-5 shadow-lg">
             <span class="font-mono text-xs uppercase text-slate-400">Contas B2B Cadastradas</span>
             <p id="kpi-customers" class="mt-2 font-mono text-2xl font-black text-white">0</p>
-            <p class="mt-1 text-xs text-slate-400">Isolamento Multi-Tenant Ativo</p>
+            <p class="mt-1 text-xs text-slate-400">Com Abertura Direta no WhatsApp</p>
           </div>
           <div class="rounded-2xl border border-white/10 bg-[#070b16]/90 p-5 shadow-lg">
             <span class="font-mono text-xs uppercase text-slate-400">Ordens de Serviço</span>
             <p id="kpi-orders" class="mt-2 font-mono text-2xl font-black text-emerald-400">0</p>
-            <p class="mt-1 text-xs text-slate-400">Prontas para Disparo PDF</p>
+            <p class="mt-1 text-xs text-slate-400">Prontas para Disparo no WhatsApp</p>
           </div>
           <div class="rounded-2xl border border-white/10 bg-[#070b16]/90 p-5 shadow-lg">
             <span class="font-mono text-xs uppercase text-slate-400">Saldo Físico WMS</span>
             <p id="kpi-wms" class="mt-2 font-mono text-2xl font-black text-indigo-400">0 UN</p>
             <p class="mt-1 text-xs text-slate-400">Endereçamento Corredor/Rack/Bin</p>
+          </div>
+        </div>
+
+        <!-- DISPARADOR RÁPIDO PARA ABRIR O WHATSAPP DE QUALQUER PESSOA -->
+        <div class="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-[#070b16] to-[#070b16] p-5 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold border border-emerald-500/30">
+                CONEXÃO DIRETA WHATSAPP WEB
+              </span>
+              <h3 class="text-sm font-black text-white mt-2 uppercase">
+                Abrir o WhatsApp de Qualquer Pessoa / Cliente Agora
+              </h3>
+              <p class="text-xs text-slate-400">
+                Digite o DDD + Número e a mensagem (ou deixe em branco para usar sua mensagem padrão das configurações) e clique em abrir.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+            <input
+              id="quickWaPhone"
+              type="text"
+              placeholder="DDD + Número da pessoa (Ex: 11999999999)"
+              class="md:col-span-4 rounded-xl border border-white/15 bg-[#03060c] px-3.5 py-2.5 font-mono text-white focus:border-emerald-400 focus:outline-none"
+            />
+            <input
+              id="quickWaText"
+              type="text"
+              placeholder="Mensagem opcional para já cair preenchida no WhatsApp..."
+              className="md:col-span-5 rounded-xl border border-white/15 bg-[#03060c] px-3.5 py-2.5 text-white focus:border-emerald-400 focus:outline-none"
+              style="grid-column: span 5 / span 5;"
+              class="rounded-xl border border-white/15 bg-[#03060c] px-3.5 py-2.5 text-white focus:border-emerald-400 focus:outline-none"
+            />
+            <button
+              onclick="launchDirectPersonWhatsApp()"
+              class="md:col-span-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2.5 font-black text-white shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:opacity-95 transition"
+            >
+              📲 Abrir WhatsApp da Pessoa →
+            </button>
           </div>
         </div>
 
@@ -162,10 +210,12 @@
           </div>
 
           <div class="rounded-2xl border border-white/10 bg-[#070b16]/90 p-5 space-y-3">
-            <h3 class="text-sm font-bold text-white">Fluxo de Operação Real</h3>
-            <p class="text-xs text-slate-400">Cadastre seus dados reais seguindo a ordem operacional:</p>
+            <h3 class="text-sm font-bold text-white">Atalhos Operacionais</h3>
+            <button onclick="go('waconfig')" class="w-full text-left p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-400 text-xs font-bold text-emerald-300 flex justify-between transition">
+              <span>📲 Configurar WhatsApp Web & Mensagens</span><span>→</span>
+            </button>
             <button onclick="openModal('customer')" class="w-full text-left p-3.5 rounded-xl border border-white/10 bg-[#03060c] hover:border-cyan-500/50 text-xs font-bold flex justify-between transition">
-              <span>1. Cadastrar Cliente B2B</span><span class="text-cyan-400">+</span>
+              <span>1. Cadastrar Cliente B2B com WhatsApp</span><span class="text-cyan-400">+</span>
             </button>
             <button onclick="openModal('wms')" class="w-full text-left p-3.5 rounded-xl border border-white/10 bg-[#03060c] hover:border-cyan-500/50 text-xs font-bold flex justify-between transition">
               <span>2. Cadastrar Produto no Estoque WMS</span><span class="text-cyan-400">+</span>
@@ -173,6 +223,144 @@
             <button onclick="openModal('order')" class="w-full text-left p-3.5 rounded-xl border border-white/10 bg-[#03060c] hover:border-cyan-500/50 text-xs font-bold flex justify-between transition">
               <span>3. Emitir Ordem de Serviço (OS)</span><span class="text-emerald-400">+</span>
             </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- =================================================================
+           VIEW NOVA: CONEXÃO WHATSAPP WEB & CONFIGURAÇÕES PERSONALIZADAS
+      ================================================================== -->
+      <main id="view-waconfig" class="hidden flex-1 p-6 overflow-y-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Coluna Esquerda: Conexão WhatsApp Web / QR Code -->
+          <div class="lg:col-span-5 space-y-5">
+            <div class="rounded-2xl border border-white/10 bg-[#070b16]/95 p-5 shadow-xl space-y-4">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="text-sm font-black uppercase tracking-wider text-white">📲 Modo de Conexão WhatsApp</h3>
+                <span id="waModeBadge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold">WEB DIRETO</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5 text-xs">
+                <button onclick="setWaMode('whatsapp_web_direct')" id="modeBtn-direct" class="p-3.5 rounded-xl border text-left transition border-emerald-400 bg-emerald-500/15 text-white">
+                  <strong class="block text-emerald-300">1. WhatsApp Web Direto</strong>
+                  <span class="block mt-1 opacity-80">Abre o WhatsApp Web oficial direto na conversa da pessoa (sem precisar de servidor externo).</span>
+                </button>
+                <button onclick="setWaMode('evolution_api')" id="modeBtn-evo" class="p-3.5 rounded-xl border text-left transition border-white/10 bg-[#03060c] text-slate-400">
+                  <strong class="block text-cyan-300">2. Evolution API (QR Code)</strong>
+                  <span class="block mt-1 opacity-80">Conecta sua instância Evolution API via leitura de QR Code no celular.</span>
+                </button>
+              </div>
+
+              <!-- Box Modo Direto -->
+              <div id="waDirectBox" class="rounded-2xl border border-white/10 bg-[#03060c] p-5 space-y-4 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-emerald-400 uppercase">Tipo de Abertura do WhatsApp:</span>
+                  <select id="cfg_waTargetType" onchange="saveWaConfigFromInputs()" class="rounded-lg border border-white/10 bg-[#070b16] px-2.5 py-1.5 text-white font-mono">
+                    <option value="web">WhatsApp Web no Navegador (web.whatsapp.com)</option>
+                    <option value="app">Aplicativo WhatsApp Desktop / Celular (wa.me)</option>
+                  </select>
+                </div>
+                <p class="text-slate-400 leading-relaxed">
+                  Neste modo, sempre que você clicar em <strong>"Abrir WhatsApp da Pessoa"</strong> ou <strong>"Enviar OS no WhatsApp"</strong>, o sistema abrirá imediatamente o WhatsApp conectado no seu computador já na janela da pessoa e com toda a Ordem de Serviço preenchida!
+                </p>
+                <button onclick="window.open('https://web.whatsapp.com', '_blank')" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black shadow-[0_0_20px_rgba(16,185,129,0.35)] hover:opacity-95 transition">
+                  🔗 Abrir Painel Principal do WhatsApp Web Agora
+                </button>
+              </div>
+
+              <!-- Box Modo Evolution QR Code -->
+              <div id="waEvoBox" class="hidden rounded-2xl border border-white/10 bg-[#03060c] p-5 text-center space-y-4 text-xs">
+                <div id="qrPreviewContainer" class="py-4">
+                  <p class="text-slate-400">Preencha a URL, Instância e API Key ao lado e clique abaixo para puxar o QR Code real do seu servidor Evolution API.</p>
+                </div>
+                <button onclick="fetchEvolutionQrCode()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black shadow-[0_0_20px_rgba(6,182,212,0.35)]">
+                  🔄 Gerar QR Code da Instância Evolution API
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Suas Configurações Personalizadas -->
+          <div class="lg:col-span-7 space-y-5">
+            <div class="rounded-2xl border border-white/10 bg-[#070b16]/95 p-5 shadow-xl space-y-4 text-xs">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="text-sm font-black uppercase tracking-wider text-white">⚙️ Suas Configurações do WhatsApp & Mensagens</h3>
+                <button onclick="saveWaConfigFromInputs(true)" class="px-3.5 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-black">
+                  Salvar Configurações
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-300">Nome da Sua Empresa (Cabeçalho da OS)</label>
+                  <input id="cfg_companyName" type="text" oninput="saveWaConfigFromInputs()" placeholder="Ex: Minha Empresa Ltda" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white focus:border-cyan-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-300">Seu Número de WhatsApp de Atendimento</label>
+                  <input id="cfg_myPhone" type="text" oninput="saveWaConfigFromInputs()" placeholder="Ex: 5511999999999" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 font-mono text-white focus:border-cyan-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-300"> código do País Padrão (DDI)</label>
+                  <input id="cfg_ddi" type="text" value="55" oninput="saveWaConfigFromInputs()" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 font-mono text-white focus:border-cyan-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-300">Chave PIX para Recebimento nas OS</label>
+                  <input id="cfg_pixKey" type="text" oninput="saveWaConfigFromInputs()" placeholder="CNPJ, E-mail ou Telefone PIX" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 font-mono text-white focus:border-cyan-500 focus:outline-none" />
+                </div>
+              </div>
+
+              <!-- Credenciais Evolution API (Opcional) -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-white/10">
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-400">URL Evolution API (Opcional)</label>
+                  <input id="cfg_evoUrl" type="url" oninput="saveWaConfigFromInputs()" placeholder="https://api.seudominio.com" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2 font-mono text-white" />
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-400">Nome da Instância</label>
+                  <input id="cfg_evoInstance" type="text" oninput="saveWaConfigFromInputs()" placeholder="omniflow" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2 font-mono text-white" />
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-400">API Key da Instância</label>
+                  <input id="cfg_evoKey" type="password" oninput="saveWaConfigFromInputs()" placeholder="••••••••••••" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2 font-mono text-white" />
+                </div>
+              </div>
+
+              <!-- Templates Personalizados -->
+              <div class="space-y-3 pt-3 border-t border-white/10">
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-300">
+                    Mensagem Padrão de Saudação (Variáveis: <code class="text-cyan-400">{cliente}</code>, <code class="text-cyan-400">{empresa}</code>)
+                  </label>
+                  <textarea id="cfg_greetingTpl" rows="2" oninput="saveWaConfigFromInputs()" class="w-full rounded-xl border border-white/10 bg-[#03060c] p-3 text-white"></textarea>
+                </div>
+
+                <div>
+                  <label class="block mb-1 font-semibold text-slate-300">
+                    Template de Envio de Ordem de Serviço (Variáveis: <code class="text-cyan-400">{cliente}</code>, <code class="text-cyan-400">{os}</code>, <code class="text-cyan-400">{itens}</code>, <code class="text-cyan-400">{valor}</code>, <code class="text-cyan-400">{pix}</code>)
+                  </label>
+                  <textarea id="cfg_orderTpl" rows="4" oninput="saveWaConfigFromInputs()" class="w-full rounded-xl border border-white/10 bg-[#03060c] p-3 text-white"></textarea>
+                </div>
+              </div>
+
+              <!-- Opções Automáticas -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/10">
+                <label class="flex items-center justify-between p-3 rounded-xl border border-white/10 bg-[#03060c] cursor-pointer">
+                  <div>
+                    <strong class="text-white block">Abrir WhatsApp ao Emitir OS</strong>
+                    <span class="text-slate-400">Abre automaticamente o WhatsApp do cliente quando criar uma OS</span>
+                  </div>
+                  <input id="cfg_autoOpenOnOrder" type="checkbox" onchange="saveWaConfigFromInputs()" class="h-4 w-4 accent-cyan-400" />
+                </label>
+
+                <label class="flex items-center justify-between p-3 rounded-xl border border-white/10 bg-[#03060c] cursor-pointer">
+                  <div>
+                    <strong class="text-white block">Assinar Nome do Operador</strong>
+                    <span class="text-slate-400">Adiciona `*Operador:*` no início da mensagem enviada</span>
+                  </div>
+                  <input id="cfg_signOperator" type="checkbox" onchange="saveWaConfigFromInputs()" class="h-4 w-4 accent-cyan-400" />
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -191,21 +379,27 @@
       <main id="view-whatsapp" class="hidden flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         <section class="lg:col-span-3 border-r border-white/10 bg-[#050811] flex flex-col">
           <div class="p-4 border-b border-white/10 flex justify-between items-center">
-            <span class="font-mono text-xs font-bold uppercase text-cyan-400">Canais Ativos</span>
+            <span class="font-mono text-xs font-bold uppercase text-cyan-400">Conversas & Clientes</span>
             <button onclick="openModal('customer')" class="text-xs font-bold text-cyan-400 hover:underline">+ Novo Contato</button>
           </div>
           <div id="waChatList" class="flex-1 divide-y divide-white/5 overflow-y-auto"></div>
         </section>
+
         <section class="lg:col-span-5 border-r border-white/10 bg-[#03060c] flex flex-col">
-          <div id="waHeader" class="p-4 border-b border-white/10 bg-[#070b16] text-xs font-bold">Selecione um cliente</div>
+          <div id="waHeader" class="p-4 border-b border-white/10 bg-[#070b16] flex items-center justify-between text-xs font-bold">
+            <span>Selecione um cliente</span>
+          </div>
           <div id="waMessages" class="flex-1 p-5 space-y-3 overflow-y-auto min-h-[380px]"></div>
           <form onsubmit="sendWaMsg(event)" class="p-3.5 border-t border-white/10 bg-[#070b16] flex gap-2">
-            <input id="waMsgInput" type="text" placeholder="Digite sua mensagem real..." class="flex-1 rounded-xl border border-white/10 bg-[#03060c] px-3.5 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none" />
-            <button type="submit" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold">Enviar</button>
+            <input id="waMsgInput" type="text" placeholder="Digite sua mensagem (envia e abre no WhatsApp da pessoa)..." class="flex-1 rounded-xl border border-white/10 bg-[#03060c] px-3.5 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none" />
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold shadow">
+              📲 Enviar no WhatsApp
+            </button>
           </form>
         </section>
+
         <aside class="lg:col-span-4 bg-[#050811] p-4 space-y-3 overflow-y-auto">
-          <span class="font-mono text-xs font-bold uppercase text-cyan-400 block border-b border-white/10 pb-2">Contexto CRM & Disparo PDF</span>
+          <span class="font-mono text-xs font-bold uppercase text-cyan-400 block border-b border-white/10 pb-2">Contexto CRM & Disparo de OS</span>
           <div id="waContextPanel" class="space-y-3"></div>
         </aside>
       </main>
@@ -233,9 +427,27 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'omniflow_zero_mock_state_v1';
+    const STORAGE_KEY = 'omniflow_zero_mock_state_v2';
+    const DEFAULT_WA_CONFIG = {
+      mode: 'whatsapp_web_direct',
+      targetType: 'web',
+      companyName: 'OmniFlow Enterprise',
+      myPhone: '',
+      ddi: '55',
+      pixKey: '',
+      evoUrl: '',
+      evoInstance: '',
+      evoKey: '',
+      greetingTpl: 'Olá *{cliente}*! Aqui é da *{empresa}*. Como podemos ajudar você hoje?',
+      orderTpl: 'Olá *{cliente}*!\n\nSegue o resumo da sua Ordem de Serviço *{os}*:\n• Itens/Serviços: {itens}\n• Valor Total: *{valor}*\n• Chave PIX: {pix}\n\nQualquer dúvida estamos à disposição!',
+      autoOpenOnOrder: true,
+      signOperator: true
+    };
+
     let state = {
       tenantId: 'tenant_production_01',
+      operatorName: 'Admin Master',
+      waConfig: { ...DEFAULT_WA_CONFIG },
       deals: [],
       customers: [],
       wms: [],
@@ -249,22 +461,154 @@
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) state = JSON.parse(raw);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state = {
+            ...state,
+            ...parsed,
+            waConfig: { ...DEFAULT_WA_CONFIG, ...(parsed.waConfig || {}) }
+          };
+        }
       } catch {}
+      syncWaConfigInputs();
       renderAll();
     }
 
     function saveState() {
       state.tenantId = document.getElementById('tenantInput').value || 'tenant_production_01';
+      state.operatorName = document.getElementById('operatorInput').value || 'Admin Master';
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch {}
       renderAll();
     }
 
+    function syncWaConfigInputs() {
+      const c = state.waConfig || DEFAULT_WA_CONFIG;
+      document.getElementById('cfg_waTargetType').value = c.targetType || 'web';
+      document.getElementById('cfg_companyName').value = c.companyName || '';
+      document.getElementById('cfg_myPhone').value = c.myPhone || '';
+      document.getElementById('cfg_ddi').value = c.ddi || '55';
+      document.getElementById('cfg_pixKey').value = c.pixKey || '';
+      document.getElementById('cfg_evoUrl').value = c.evoUrl || '';
+      document.getElementById('cfg_evoInstance').value = c.evoInstance || '';
+      document.getElementById('cfg_evoKey').value = c.evoKey || '';
+      document.getElementById('cfg_greetingTpl').value = c.greetingTpl || DEFAULT_WA_CONFIG.greetingTpl;
+      document.getElementById('cfg_orderTpl').value = c.orderTpl || DEFAULT_WA_CONFIG.orderTpl;
+      document.getElementById('cfg_autoOpenOnOrder').checked = Boolean(c.autoOpenOnOrder);
+      document.getElementById('cfg_signOperator').checked = Boolean(c.signOperator);
+      setWaMode(c.mode || 'whatsapp_web_direct', true);
+    }
+
+    function saveWaConfigFromInputs(showBanner = false) {
+      state.waConfig = {
+        ...state.waConfig,
+        targetType: document.getElementById('cfg_waTargetType').value,
+        companyName: document.getElementById('cfg_companyName').value,
+        myPhone: document.getElementById('cfg_myPhone').value,
+        ddi: document.getElementById('cfg_ddi').value || '55',
+        pixKey: document.getElementById('cfg_pixKey').value,
+        evoUrl: document.getElementById('cfg_evoUrl').value,
+        evoInstance: document.getElementById('cfg_evoInstance').value,
+        evoKey: document.getElementById('cfg_evoKey').value,
+        greetingTpl: document.getElementById('cfg_greetingTpl').value,
+        orderTpl: document.getElementById('cfg_orderTpl').value,
+        autoOpenOnOrder: document.getElementById('cfg_autoOpenOnOrder').checked,
+        signOperator: document.getElementById('cfg_signOperator').checked
+      };
+      saveState();
+      if (showBanner) {
+        notify('Configurações do WhatsApp salvas com sucesso!');
+      }
+    }
+
+    function setWaMode(mode, skipSave = false) {
+      state.waConfig.mode = mode;
+      const isDirect = mode === 'whatsapp_web_direct';
+      document.getElementById('waDirectBox').classList.toggle('hidden', !isDirect);
+      document.getElementById('waEvoBox').classList.toggle('hidden', isDirect);
+      document.getElementById('waModeBadge').textContent = isDirect ? 'WEB DIRETO' : 'EVOLUTION API';
+      document.getElementById('modeBtn-direct').className = isDirect
+        ? 'p-3.5 rounded-xl border text-left transition border-emerald-400 bg-emerald-500/15 text-white'
+        : 'p-3.5 rounded-xl border text-left transition border-white/10 bg-[#03060c] text-slate-400';
+      document.getElementById('modeBtn-evo').className = !isDirect
+        ? 'p-3.5 rounded-xl border text-left transition border-cyan-400 bg-cyan-500/15 text-white'
+        : 'p-3.5 rounded-xl border text-left transition border-white/10 bg-[#03060c] text-slate-400';
+      if (!skipSave) saveState();
+    }
+
+    async function fetchEvolutionQrCode() {
+      const { evoUrl, evoInstance, evoKey } = state.waConfig;
+      const box = document.getElementById('qrPreviewContainer');
+      if (!evoUrl || !evoInstance || !evoKey) {
+        box.innerHTML = `<p class="text-rose-400 font-bold">Preencha a URL Evolution API, Nome da Instância e API Key ao lado antes de gerar o QR Code.</p>`;
+        return;
+      }
+      box.innerHTML = `<p class="text-cyan-400 font-bold">Conectando em ${evoUrl}...</p>`;
+      try {
+        const clean = evoUrl.replace(/\/+$/, '');
+        const res = await fetch(`${clean}/instance/connect/${encodeURIComponent(evoInstance)}`, {
+          headers: { apikey: evoKey }
+        });
+        const data = await res.json();
+        if (data.base64) {
+          box.innerHTML = `<img src="${data.base64}" class="mx-auto h-52 w-52 rounded-xl border-4 border-white bg-white p-2" /><p class="text-emerald-400 font-bold mt-2">Escaneie no seu celular!</p>`;
+        } else {
+          box.innerHTML = `<p class="text-emerald-400 font-bold">Instância conectada: ${JSON.stringify(data)}</p>`;
+        }
+      } catch (e) {
+        box.innerHTML = `<p class="text-rose-400">Erro ao conectar na Evolution API: ${e.message}</p>`;
+      }
+    }
+
+    function normalizePhoneWithDdi(rawPhone) {
+      const digits = (rawPhone || '').replace(/\D/g, '');
+      if (!digits) return '';
+      const ddi = (state.waConfig.ddi || '55').replace(/\D/g, '') || '55';
+      if (digits.length === 10 || digits.length === 11) {
+        return ddi + digits;
+      }
+      return digits;
+    }
+
+    function openPersonWhatsAppWindow(rawPhone, rawMessage, customerName = 'Cliente') {
+      const phone = normalizePhoneWithDdi(rawPhone);
+      if (!phone) {
+        notify('Informe um número de telefone válido com DDD para abrir o WhatsApp.');
+        return;
+      }
+
+      let finalMsg = rawMessage || state.waConfig.greetingTpl || '';
+      finalMsg = finalMsg
+        .replace(/\{cliente\}/g, customerName)
+        .replace(/\{empresa\}/g, state.waConfig.companyName || 'OmniFlow');
+
+      if (state.waConfig.signOperator && state.operatorName) {
+        finalMsg = `*${state.operatorName}:*\n${finalMsg}`;
+      }
+
+      const encoded = encodeURIComponent(finalMsg);
+      const url =
+        state.waConfig.targetType === 'app'
+          ? `https://wa.me/${phone}?text=${encoded}`
+          : `https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`;
+
+      window.open(url, '_blank', 'noopener,noreferrer');
+      logAudit('WHATSAPP_OPEN_CHAT', 'whatsapp_chat', phone, null, { phone, customerName });
+      saveState();
+    }
+
+    function launchDirectPersonWhatsApp() {
+      const phone = document.getElementById('quickWaPhone').value.trim();
+      const text = document.getElementById('quickWaText').value.trim();
+      openPersonWhatsAppWindow(phone, text, 'Cliente');
+    }
+
     function resetAllData() {
       state = {
         tenantId: state.tenantId,
+        operatorName: state.operatorName,
+        waConfig: state.waConfig,
         deals: [],
         customers: [],
         wms: [],
@@ -302,11 +646,14 @@
     }
 
     function go(tab) {
-      ['dashboard', 'pipeline', 'customers', 'whatsapp', 'orders', 'wms', 'audit'].forEach((t) => {
+      ['dashboard', 'pipeline', 'customers', 'whatsapp', 'waconfig', 'orders', 'wms', 'audit'].forEach((t) => {
         document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
         const btn = document.getElementById('nav-' + t);
+        if (!btn) return;
         if (t === tab) {
           btn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition bg-gradient-to-r from-cyan-500/20 to-blue-600/10 text-cyan-300 border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.15)]';
+        } else if (t === 'waconfig') {
+          btn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20';
         } else {
           btn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-slate-400 hover:bg-white/5 hover:text-white';
         }
@@ -327,6 +674,7 @@
           <form onsubmit="submitDeal(event)" class="space-y-3 text-xs">
             <div><label class="block mb-1 font-semibold text-slate-300">Título da Negociação</label><input id="f_deal_title" required class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white" /></div>
             <div><label class="block mb-1 font-semibold text-slate-300">Empresa / Cliente</label><input id="f_deal_comp" required class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white" /></div>
+            <div><label class="block mb-1 font-semibold text-slate-300">WhatsApp do Contato (DDD + Número)</label><input id="f_deal_phone" placeholder="Ex: 11999999999" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white font-mono" /></div>
             <div><label class="block mb-1 font-semibold text-slate-300">Valor (R$)</label><input id="f_deal_val" required type="number" step="0.01" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white font-mono" /></div>
             <div class="flex justify-end gap-2 pt-2">
               <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-white/10">Cancelar</button>
@@ -341,10 +689,10 @@
             <button onclick="closeModal()" class="text-xs text-slate-400">✕</button>
           </div>
           <form onsubmit="submitCustomer(event)" class="space-y-3 text-xs">
-            <div><label class="block mb-1 font-semibold text-slate-300">Razão Social / Nome</label><input id="f_c_name" required class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white" /></div>
+            <div><label class="block mb-1 font-semibold text-slate-300">Razão Social / Nome da Pessoa</label><input id="f_c_name" required class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white" /></div>
             <div><label class="block mb-1 font-semibold text-slate-300">CNPJ / CPF</label><input id="f_c_doc" required class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white font-mono" /></div>
-            <div><label class="block mb-1 font-semibold text-slate-300">WhatsApp</label><input id="f_c_phone" required placeholder="+55 11 99999-9999" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white font-mono" /></div>
-            <div><label class="block mb-1 font-semibold text-slate-300">Limite de Crédito (R$)</label><input id="f_c_cred" required type="number" step="0.01" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white font-mono" /></div>
+            <div><label class="block mb-1 font-semibold text-slate-300">WhatsApp da Pessoa (DDD + Número)</label><input id="f_c_phone" required placeholder="Ex: 11999999999" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white font-mono" /></div>
+            <div><label class="block mb-1 font-semibold text-slate-300">Limite de Crédito (R$)</label><input id="f_c_cred" required type="number" step="0.01" value="0" class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white font-mono" /></div>
             <div class="flex justify-end gap-2 pt-2">
               <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-white/10">Cancelar</button>
               <button type="submit" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">Salvar Cliente</button>
@@ -375,7 +723,7 @@
         if (state.customers.length === 0) {
           box.innerHTML = `
             <div class="space-y-3 text-xs">
-              <p class="font-bold text-amber-400">Cadastre pelo menos 1 Cliente B2B antes de emitir uma Ordem de Serviço.</p>
+              <p class="font-bold text-amber-400">Cadastre pelo menos 1 Cliente antes de emitir uma Ordem de Serviço.</p>
               <div class="flex justify-end gap-2">
                 <button onclick="openModal('customer')" class="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold">Cadastrar Cliente Agora</button>
               </div>
@@ -392,7 +740,7 @@
             <div>
               <label class="block mb-1 font-semibold text-slate-300">Cliente</label>
               <select id="f_o_cust" required class="w-full rounded-xl border border-white/10 bg-[#03060c] px-3 py-2.5 text-white">
-                ${state.customers.map(c => `<option value="${c.id}">${c.name} (${c.doc})</option>`).join('')}
+                ${state.customers.map(c => `<option value="${c.id}">${c.name} (${c.phone})</option>`).join('')}
               </select>
             </div>
             <div>
@@ -422,6 +770,7 @@
         id: 'deal_' + Date.now(),
         title: document.getElementById('f_deal_title').value.trim(),
         company: document.getElementById('f_deal_comp').value.trim(),
+        phone: document.getElementById('f_deal_phone').value.trim(),
         valueCents: Math.round(parseFloat(document.getElementById('f_deal_val').value || '0') * 100),
         stage: 'lead'
       };
@@ -449,7 +798,7 @@
       logAudit('CREATE', 'customer', c.id, null, c);
       closeModal();
       saveState();
-      notify(`Cliente "${c.name}" cadastrado e vinculado à Central WhatsApp!`);
+      notify(`Cliente "${c.name}" cadastrado com sucesso!`);
     }
 
     function submitWms(e) {
@@ -485,14 +834,20 @@
         number: `OS-2026-${String(state.orders.length + 1).padStart(4, '0')}`,
         customerId: cust.id,
         customerName: cust.name,
-        skuText: skuItem ? `1x ${skuItem.name} [${skuItem.bin}]` : 'Somente Serviço Técnico',
+        customerPhone: cust.phone,
+        skuText: skuItem ? `1x ${skuItem.name} [${skuItem.bin}]` : 'Serviço Técnico Especializado',
         totalCents: prodCents + srvCents
       };
       state.orders.unshift(ord);
       logAudit('CREATE', 'order', ord.number, null, ord);
       closeModal();
       saveState();
-      notify(`Ordem de Serviço ${ord.number} emitida!`);
+
+      if (state.waConfig.autoOpenOnOrder) {
+        sendOrderPdfToChat(ord.number, ord.totalCents, ord.customerPhone, ord.customerName, ord.skuText);
+      } else {
+        notify(`Ordem de Serviço ${ord.number} emitida!`);
+      }
     }
 
     function moveDeal(id, nextStage) {
@@ -506,26 +861,46 @@
 
     function sendWaMsg(e) {
       e.preventDefault();
-      if (!state.activeChatId) return;
+      const activeChat = state.chats.find(c => c.id === state.activeChatId);
+      if (!activeChat) return;
       const inp = document.getElementById('waMsgInput');
-      if (!inp.value.trim()) return;
-      state.messages[state.activeChatId].push({
-        body: inp.value.trim(),
+      const text = inp.value.trim();
+      if (!text) return;
+
+      state.messages[activeChat.id].push({
+        body: text,
         time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       });
       inp.value = '';
       saveState();
+
+      // Abre diretamente o WhatsApp Web na conversa real da pessoa
+      openPersonWhatsAppWindow(activeChat.phone, text, activeChat.name);
     }
 
-    function sendOrderPdfToChat(orderNumber, totalCents) {
-      if (!state.activeChatId) return;
-      state.messages[state.activeChatId].push({
-        body: `📄 [PDF OFICIAL ENVIADO] ${orderNumber}.pdf (${brl(totalCents)}) salvo no Cloud Storage e disparado via Evolution API.`,
-        time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      });
-      logAudit('WHATSAPP_PDF_SENT', 'order', orderNumber, { sent: false }, { sent: true });
+    function sendOrderPdfToChat(orderNumber, totalCents, overridePhone, overrideName, itemsDesc = 'Serviços/Peças') {
+      const activeChat = state.chats.find(c => c.id === state.activeChatId);
+      const targetPhone = overridePhone || (activeChat ? activeChat.phone : '');
+      const targetName = overrideName || (activeChat ? activeChat.name : 'Cliente');
+
+      const tpl = state.waConfig.orderTpl || DEFAULT_WA_CONFIG.orderTpl;
+      const formattedMessage = tpl
+        .replace(/\{cliente\}/g, targetName)
+        .replace(/\{os\}/g, orderNumber)
+        .replace(/\{itens\}/g, itemsDesc)
+        .replace(/\{valor\}/g, brl(totalCents))
+        .replace(/\{pix\}/g, state.waConfig.pixKey || 'A combinar');
+
+      if (activeChat) {
+        state.messages[activeChat.id].push({
+          body: `📄 [OS ENVIADA NO WHATSAPP]\n${formattedMessage}`,
+          time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        });
+      }
+
+      logAudit('WHATSAPP_PDF_SENT', 'order', orderNumber, { sent: false }, { sent: true, targetPhone });
       saveState();
-      notify(`PDF da ${orderNumber} enviado no WhatsApp e registrado na Auditoria!`);
+      openPersonWhatsAppWindow(targetPhone, formattedMessage, targetName);
     }
 
     function renderAll() {
@@ -549,8 +924,11 @@
         ? `<div class="p-8 rounded-xl border border-dashed border-white/10 text-center text-xs text-slate-400">Nenhuma oportunidade cadastrada. Clique em <strong>+ Nova Oportunidade</strong> no topo para criar seu primeiro card real.</div>`
         : state.deals.map(d => `
             <div class="py-3 border-b border-white/10 flex justify-between items-center text-xs">
-              <div><strong class="text-white">${d.title}</strong><span class="block text-slate-400">${d.company}</span></div>
-              <span class="font-mono font-bold text-emerald-400">${brl(d.valueCents)}</span>
+              <div><strong class="text-white">${d.title}</strong><span class="block text-slate-400">${d.company} ${d.phone ? '• ' + d.phone : ''}</span></div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-emerald-400">${brl(d.valueCents)}</span>
+                ${d.phone ? `<button onclick="openPersonWhatsAppWindow('${d.phone}', '', '${d.company}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">📲 Abrir WhatsApp</button>` : ''}
+              </div>
             </div>
           `).join('');
 
@@ -575,7 +953,10 @@
                 <p class="font-bold text-white">${d.title}</p>
                 <div class="flex justify-between items-center pt-2 border-t border-white/10">
                   <span class="font-mono font-bold text-emerald-400">${brl(d.valueCents)}</span>
-                  ${idx < 4 ? `<button onclick="moveDeal('${d.id}', '${stages[idx+1].k}')" class="px-2.5 py-1 rounded-lg bg-cyan-500 text-slate-950 font-bold">Avançar →</button>` : `<span class="text-emerald-400 font-bold">✓</span>`}
+                  <div class="flex gap-1">
+                    ${d.phone ? `<button onclick="openPersonWhatsAppWindow('${d.phone}', '', '${d.company}')" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold" title="Abrir WhatsApp">📲</button>` : ''}
+                    ${idx < 4 ? `<button onclick="moveDeal('${d.id}', '${stages[idx+1].k}')" class="px-2 py-1 rounded bg-cyan-500 text-slate-950 font-bold">→</button>` : `<span class="text-emerald-400 font-bold">✓</span>`}
+                  </div>
                 </div>
               </div>
             `).join('')}
@@ -585,7 +966,7 @@
 
       document.getElementById('customersWrapper').innerHTML = state.customers.length === 0
         ? `<div class="p-10 text-center text-xs text-slate-400">Nenhum cliente cadastrado. Clique em <strong>+ Cliente B2B</strong> na barra superior.</div>`
-        : `<table class="w-full text-left text-xs"><thead class="bg-white/5 border-b border-white/10 font-mono uppercase text-slate-400"><tr><th class="p-3.5">Empresa</th><th class="p-3.5">CNPJ/CPF</th><th class="p-3.5">WhatsApp</th><th class="p-3.5 text-right">Crédito</th></tr></thead><tbody class="divide-y divide-white/5">${state.customers.map(c => `<tr><td class="p-3.5 font-bold text-white">${c.name}</td><td class="p-3.5 font-mono">${c.doc}</td><td class="p-3.5 font-mono text-cyan-400">${c.phone}</td><td class="p-3.5 text-right font-mono font-bold text-emerald-400">${brl(c.creditCents)}</td></tr>`).join('')}</tbody></table>`;
+        : `<table class="w-full text-left text-xs"><thead class="bg-white/5 border-b border-white/10 font-mono uppercase text-slate-400"><tr><th class="p-3.5">Empresa / Pessoa</th><th class="p-3.5">CNPJ/CPF</th><th class="p-3.5">WhatsApp</th><th class="p-3.5 text-right">Crédito</th><th class="p-3.5 text-right">Conexão Direta</th></tr></thead><tbody class="divide-y divide-white/5">${state.customers.map(c => `<tr><td class="p-3.5 font-bold text-white">${c.name}</td><td class="p-3.5 font-mono">${c.doc}</td><td class="p-3.5 font-mono text-cyan-400">${c.phone}</td><td class="p-3.5 text-right font-mono font-bold text-emerald-400">${brl(c.creditCents)}</td><td class="p-3.5 text-right"><button onclick="openPersonWhatsAppWindow('${c.phone}', '', '${c.name}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">📲 Abrir WhatsApp da Pessoa</button></td></tr>`).join('')}</tbody></table>`;
 
       document.getElementById('wmsWrapper').innerHTML = state.wms.length === 0
         ? `<div class="p-10 text-center text-xs text-slate-400">Nenhum SKU no estoque. Clique em <strong>+ SKU Estoque</strong> na barra superior.</div>`
@@ -597,12 +978,12 @@
             <div class="rounded-2xl border border-white/10 bg-[#070b16]/90 p-5 flex justify-between items-center text-xs">
               <div>
                 <span class="font-mono font-black text-cyan-400 text-sm">${o.number}</span>
-                <p class="font-bold text-white mt-1">${o.customerName}</p>
+                <p class="font-bold text-white mt-1">${o.customerName} (${o.customerPhone || ''})</p>
                 <p class="text-slate-400">${o.skuText}</p>
               </div>
               <div class="text-right space-y-2">
                 <p class="font-mono text-sm font-black text-emerald-400">${brl(o.totalCents)}</p>
-                <button onclick="go('whatsapp'); sendOrderPdfToChat('${o.number}', ${o.totalCents})" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold">📄 Disparar PDF no WhatsApp</button>
+                <button onclick="sendOrderPdfToChat('${o.number}', ${o.totalCents}, '${o.customerPhone}', '${o.customerName}', '${o.skuText}')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">📲 Abrir WhatsApp da Pessoa & Enviar OS</button>
               </div>
             </div>
           `).join('');
@@ -617,10 +998,14 @@
           `).join('');
 
       const activeChat = state.chats.find(c => c.id === state.activeChatId);
-      document.getElementById('waHeader').textContent = activeChat ? `${activeChat.name} (${activeChat.phone})` : 'Nenhum atendimento selecionado';
+      document.getElementById('waHeader').innerHTML = activeChat
+        ? `<span>${activeChat.name} (${activeChat.phone})</span>
+           <button onclick="openPersonWhatsAppWindow('${activeChat.phone}', '', '${activeChat.name}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">📲 Abrir no WhatsApp Web</button>`
+        : `<span>Nenhum atendimento selecionado</span>`;
+
       const msgs = activeChat ? (state.messages[activeChat.id] || []) : [];
       document.getElementById('waMessages').innerHTML = msgs.map(m => `
-        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs ml-auto max-w-md shadow-lg">
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs ml-auto max-w-md shadow-lg whitespace-pre-wrap">
           <p>${m.body}</p>
           <span class="block text-right font-mono text-xs opacity-75 mt-1">${m.time}</span>
         </div>
@@ -630,7 +1015,7 @@
       document.getElementById('waContextPanel').innerHTML = custOrders.map(o => `
         <div class="p-3.5 rounded-xl border border-white/10 bg-[#03060c] space-y-2 text-xs">
           <div class="flex justify-between font-mono font-bold"><span class="text-cyan-400">${o.number}</span><span>${brl(o.totalCents)}</span></div>
-          <button onclick="sendOrderPdfToChat('${o.number}', ${o.totalCents})" class="w-full py-2 rounded-xl bg-emerald-600 text-white font-bold">📄 Gerar & Enviar PDF</button>
+          <button onclick="sendOrderPdfToChat('${o.number}', ${o.totalCents}, '${activeChat.phone}', '${activeChat.name}', '${o.skuText}')" class="w-full py-2 rounded-xl bg-emerald-600 text-white font-bold">📲 Enviar OS no WhatsApp da Pessoa</button>
         </div>
       `).join('');
 

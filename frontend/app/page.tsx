@@ -18,7 +18,12 @@ import {
   FileText,
   ArrowRight,
   Lock,
+  Smartphone,
+  ExternalLink,
 } from 'lucide-react';
+import WhatsAppConnectionPanel, {
+  WhatsAppGatewayConfig,
+} from '@/components/whatsapp/whatsapp-connection-panel';
 import WhatsAppChatLayout from '@/components/whatsapp/chat-layout';
 import {
   CrmPipelineDeal,
@@ -44,6 +49,7 @@ type ActiveModule =
   | 'orders'
   | 'wms'
   | 'whatsapp'
+  | 'waconfig'
   | 'audit';
 
 function formatBrlFromCents(cents: number): string {
@@ -58,6 +64,18 @@ export default function OmniFlowCrmEnterpriseApp() {
   const [companyId, setCompanyId] = useState<string>('tenant_production_01');
   const [operatorName, setOperatorName] = useState<string>('Operador Master');
   const [userRole, setUserRole] = useState<TenantRole>('admin');
+
+  const [waConfig, setWaConfig] = useState<WhatsAppGatewayConfig>({
+    mode: 'whatsapp_web_direct',
+    baseUrl: '',
+    instanceName: 'omniflow_producao',
+    apiKey: '',
+    connectedPhone: '',
+    autoSendOrderPdf: true,
+    signaturePrefix: true,
+    orderMessageTemplate:
+      'Olá *{cliente}*!\n\nSegue o resumo da sua Ordem de Serviço *{os}*:\n• Itens/Serviços: {itens}\n• Valor Total: *{valor}*\n\nQualquer dúvida estamos à disposição!',
+  });
 
   // Coleções reais persistidas (iniciam vazias — sem dados fictícios)
   const [deals, setDeals] = useState<CrmPipelineDeal[]>([]);
@@ -110,7 +128,19 @@ export default function OmniFlowCrmEnterpriseApp() {
     setChats(loadPersistedCollection<WhatsAppChat>(STORAGE_KEYS.chats));
     setMessages(loadPersistedCollection<WhatsAppMessage>(STORAGE_KEYS.messages));
     setAuditLogs(loadPersistedCollection<AuditLog>(STORAGE_KEYS.audits));
+
+    try {
+      const savedWa = localStorage.getItem('omniflow_wa_config');
+      if (savedWa) setWaConfig(JSON.parse(savedWa));
+    } catch {}
   }, []);
+
+  function handleSaveWaConfig(next: WhatsAppGatewayConfig) {
+    setWaConfig(next);
+    try {
+      localStorage.setItem('omniflow_wa_config', JSON.stringify(next));
+    } catch {}
+  }
 
   async function appendAudit(params: {
     action: AuditLog['action'];
@@ -586,6 +616,11 @@ export default function OmniFlowCrmEnterpriseApp() {
               icon: MessageSquare,
               count: chats.length,
             },
+            {
+              id: 'waconfig',
+              label: 'Conexão & Config WhatsApp',
+              icon: Smartphone,
+            },
           ].map((item) => {
             const Icon = item.icon;
             const active = activeModule === item.id;
@@ -713,6 +748,7 @@ export default function OmniFlowCrmEnterpriseApp() {
               {activeModule === 'orders' && 'Ordens de Serviço // Motor React-PDF'}
               {activeModule === 'wms' && 'Inventário WMS // Endereçamento Físico'}
               {activeModule === 'whatsapp' && 'Central WhatsApp // Multi-Atendente'}
+              {activeModule === 'waconfig' && 'Conexão WhatsApp Web // Configurações Personalizadas'}
               {activeModule === 'audit' && 'Audit Logs // Trilha Imutável'}
             </h2>
           </div>
@@ -1011,6 +1047,7 @@ export default function OmniFlowCrmEnterpriseApp() {
                       <th className="p-3.5">WhatsApp</th>
                       <th className="p-3.5">E-mail</th>
                       <th className="p-3.5 text-right">Limite de Crédito</th>
+                      <th className="p-3.5 text-center">Ações WhatsApp</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -1026,6 +1063,23 @@ export default function OmniFlowCrmEnterpriseApp() {
                         <td className="p-3.5 text-slate-400">{c.email}</td>
                         <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
                           {formatBrlFromCents(c.creditLimitCents)}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cleanPhone = c.phone.replace(/\D/g, '');
+                              const msg = encodeURIComponent(`Olá ${c.name}, ${waConfig.signature}`);
+                              const targetUrl = waConfig.defaultEndpoint === 'web'
+                                ? `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${msg}`
+                                : `https://wa.me/${cleanPhone}?text=${msg}`;
+                              window.open(targetUrl, '_blank');
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 transition shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                          >
+                            <MessageSquare className="h-3 w-3" />
+                            Abrir WhatsApp
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -1100,14 +1154,32 @@ export default function OmniFlowCrmEnterpriseApp() {
                         <span className="font-mono text-sm font-black text-white">
                           Total: {formatBrlFromCents(ord.financials.grandTotalCents)}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => setActiveModule('whatsapp')}
-                          className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500"
-                        >
-                          <FileText className="h-3.5 w-3.5" />
-                          Enviar no WhatsApp
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const matchedCust = customers.find(
+                                (c) => c.id === ord.customerId || c.name === ord.customerSnapshot.name
+                              );
+                              const phone = matchedCust ? matchedCust.phone.replace(/\D/g, '') : '';
+                              const itemsDesc = ord.items.map((i) => `• ${i.quantity}x ${i.name}`).join('\n');
+                              const text = encodeURIComponent(
+                                `Olá ${ord.customerSnapshot.name}! Segue a sua *Ordem de Serviço #${ord.orderNumber}* no valor de ${formatBrlFromCents(
+                                  ord.financials.grandTotalCents
+                                )}.\n\n*Itens:*\n${itemsDesc}\n\n${waConfig.signature}`
+                              );
+                              const targetUrl =
+                                waConfig.defaultEndpoint === 'web'
+                                  ? `https://web.whatsapp.com/send?phone=${phone}&text=${text}`
+                                  : `https://wa.me/${phone}?text=${text}`;
+                              window.open(targetUrl, '_blank');
+                            }}
+                            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-2 text-xs font-bold text-white hover:opacity-90 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            Abrir no WhatsApp Web
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1342,6 +1414,14 @@ export default function OmniFlowCrmEnterpriseApp() {
                 ))
               )}
             </div>
+          )}
+
+          {/* 8. CONEXÃO & CONFIGURAÇÕES PERSONALIZADAS DO WHATSAPP WEB */}
+          {activeModule === 'waconfig' && (
+            <WhatsAppConnectionPanel
+              config={waConfig}
+              onSaveConfig={handleSaveWaConfig}
+            />
           )}
         </main>
       </div>
