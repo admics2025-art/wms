@@ -1,0 +1,117 @@
+name: OmniFlow CRM/WMS - Monorepo CI/CD (Frontend & Backend)
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  pull_request:
+    branches:
+      - main
+      - staging
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  # ============================================================================
+  # JOB 1: VALIDAÇÃO E BUILD DO BACKEND (FIREBASE + CLOUD FUNCTIONS)
+  # ============================================================================
+  validate-backend:
+    name: Backend Typecheck & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Backend Dependencies
+        run: npm install
+
+      - name: Typecheck & Compile Cloud Functions
+        run: |
+          npm run typecheck
+          npm run build
+
+  # ============================================================================
+  # JOB 2: VALIDAÇÃO E BUILD DO FRONTEND (NEXT.JS 14 APP ROUTER)
+  # ============================================================================
+  validate-frontend:
+    name: Frontend Typecheck, Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Frontend Dependencies
+        run: npm install
+
+      - name: TypeScript Strict Check
+        run: npm run typecheck
+
+      - name: Next.js Production Build
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+        run: npm run build
+
+  # ============================================================================
+  # JOB 3: DEPLOY AUTOMÁTICO (BACKEND + FRONTEND) NA BRANCH `main`
+  # ============================================================================
+  deploy-production:
+    name: Deploy Backend (Firebase) & Frontend (Vercel)
+    needs: [validate-backend, validate-frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Authenticate Google Cloud / Firebase
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_JSON }}
+
+      - name: Deploy Backend (Firestore Rules, Indexes & Cloud Functions)
+        working-directory: ./backend
+        run: |
+          npm install
+          npm run build
+          npx firebase-tools deploy --only firestore:rules,firestore:indexes,functions --project ${{ secrets.FIREBASE_PROJECT_ID }} --non-interactive
+
+      - name: Deploy Frontend (Next.js CRM to Vercel)
+        working-directory: ./frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

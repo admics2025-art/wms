@@ -1,0 +1,17 @@
+{
+  "name": "omniflow-crm-wms-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "typecheck:frontend": "npm --prefix frontend run typecheck",
+    "build:backend": "npm --prefix backend run build",
+    "typecheck:backend": "npm --prefix backend run typecheck"
+  }
+}
+

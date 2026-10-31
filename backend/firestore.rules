@@ -1,0 +1,205 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================================
+    // FUNÇÕES AUXILIARES DE AUTENTICAÇÃO, MULTI-TENANCY E RBAC
+    // ============================================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserId() {
+      return request.auth.uid;
+    }
+
+    function getCompanyId() {
+      return request.auth.token.companyId;
+    }
+
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+
+    function hasValidTenantClaim() {
+      return isAuthenticated()
+        && ('companyId' in request.auth.token)
+        && request.auth.token.companyId is string
+        && request.auth.token.companyId.size() > 0;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserRole() == 'superadmin';
+    }
+
+    // Verifica se o usuário pertence à empresa do documento sendo lido ou escrito
+    function belongsToTenant(companyId) {
+      return isSuperAdmin() || (hasValidTenantClaim() && getCompanyId() == companyId);
+    }
+
+    // Verifica se o documento existente no Firestore pertence ao Tenant do usuário
+    function isExistingDocInTenant() {
+      return resource != null && belongsToTenant(resource.data.companyId);
+    }
+
+    // Verifica se o novo payload enviado mantém o mesmo companyId do Tenant do usuário
+    function isIncomingDocInTenant() {
+      return request.resource != null
+        && ('companyId' in request.resource.data)
+        && belongsToTenant(request.resource.data.companyId);
+    }
+
+    // Impede mutação do campo companyId em atualizações (prevenção de Tenant Hopping)
+    function companyIdIsUnchanged() {
+      return request.resource.data.companyId == resource.data.companyId;
+    }
+
+    // Hierarquia de Roles: superadmin > admin > operator > viewer
+    function hasAnyRole(allowedRoles) {
+      return isSuperAdmin() || (hasValidTenantClaim() && (getUserRole() in allowedRoles));
+    }
+
+    function canView() {
+      return hasAnyRole(['admin', 'operator', 'viewer']);
+    }
+
+    function canOperate() {
+      return hasAnyRole(['admin', 'operator']);
+    }
+
+    function isTenantAdmin() {
+      return hasAnyRole(['admin']);
+    }
+
+    // ============================================================================
+    // REGRAS POR COLEÇÃO
+    // ============================================================================
+
+    // 1. TENANTS (`tenants/{companyId}`)
+    match /tenants/{companyId} {
+      allow read: if belongsToTenant(companyId) && canView();
+      allow create: if isSuperAdmin();
+      allow update: if belongsToTenant(companyId)
+                    && isTenantAdmin()
+                    && request.resource.data.id == resource.data.id;
+      allow delete: if isSuperAdmin();
+    }
+
+    // 2. USERS (`users/{userId}`)
+    match /users/{userId} {
+      allow read: if (isAuthenticated() && getUserId() == userId)
+                  || (isExistingDocInTenant() && canView());
+
+      allow create: if isIncomingDocInTenant() && isTenantAdmin();
+
+      // Admin pode atualizar usuários do próprio tenant; o próprio usuário pode atualizar
+      // apenas status de presença/perfil sem escalar o próprio `role` ou trocar `companyId`
+      allow update: if isExistingDocInTenant()
+                    && companyIdIsUnchanged()
+                    && (
+                      isTenantAdmin()
+                      || (
+                        getUserId() == userId
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.isActive == resource.data.isActive
+                      )
+                    );
+
+      allow delete: if isExistingDocInTenant() && isTenantAdmin() && getUserId() != userId;
+    }
+
+    // 3. CUSTOMERS - CRM (`customers/{customerId}`)
+    match /customers/{customerId} {
+      allow read: if isExistingDocInTenant() && canView();
+      allow create: if isIncomingDocInTenant() && canOperate();
+      allow update: if isExistingDocInTenant()
+                    && isIncomingDocInTenant()
+                    && companyIdIsUnchanged()
+                    && canOperate();
+      allow delete: if isExistingDocInTenant() && isTenantAdmin();
+    }
+
+    // 4. INVENTORY - WMS (`inventory/{itemId}`)
+    match /inventory/{itemId} {
+      allow read: if isExistingDocInTenant() && canView();
+      allow create: if isIncomingDocInTenant()
+                    && canOperate()
+                    && request.resource.data.quantityOnHand >= 0;
+      allow update: if isExistingDocInTenant()
+                    && isIncomingDocInTenant()
+                    && companyIdIsUnchanged()
+                    && canOperate();
+      allow delete: if isExistingDocInTenant() && isTenantAdmin();
+    }
+
+    // 5. ORDERS - ORDENS DE SERVIÇO E VENDAS (`orders/{orderId}`)
+    match /orders/{orderId} {
+      allow read: if isExistingDocInTenant() && canView();
+      allow create: if isIncomingDocInTenant()
+                    && canOperate()
+                    && request.resource.data.financials.grandTotalCents >= 0;
+      allow update: if isExistingDocInTenant()
+                    && isIncomingDocInTenant()
+                    && companyIdIsUnchanged()
+                    && canOperate();
+      allow delete: if isExistingDocInTenant() && isTenantAdmin();
+    }
+
+    // 6. WHATSAPP CHATS (`whatsapp_chats/{chatId}`)
+    match /whatsapp_chats/{chatId} {
+      allow read: if isExistingDocInTenant() && canView();
+      allow create: if isIncomingDocInTenant() && canOperate();
+      allow update: if isExistingDocInTenant()
+                    && isIncomingDocInTenant()
+                    && companyIdIsUnchanged()
+                    && canOperate();
+      allow delete: if isExistingDocInTenant() && isTenantAdmin();
+    }
+
+    // 7. WHATSAPP MESSAGES (`whatsapp_messages/{messageId}`)
+    // Mensagens de chat não podem ser deletadas por operadores (rastreabilidade)
+    match /whatsapp_messages/{messageId} {
+      allow read: if isExistingDocInTenant() && canView();
+      allow create: if isIncomingDocInTenant() && canOperate();
+      allow update: if isExistingDocInTenant()
+                    && isIncomingDocInTenant()
+                    && companyIdIsUnchanged()
+                    && canOperate()
+                    && request.resource.data.body == resource.data.body
+                    && request.resource.data.direction == resource.data.direction;
+      allow delete: if false;
+    }
+
+    // 8. AUDIT LOGS (`audit_logs/{logId}`) - ESTRITAMENTE IMUTÁVEL (APPEND-ONLY)
+    match /audit_logs/{logId} {
+      allow read: if isExistingDocInTenant() && isTenantAdmin();
+
+      // Permite criação se pertencer ao mesmo tenant, com o próprio userId autenticado
+      allow create: if isIncomingDocInTenant()
+                    && canOperate()
+                    && request.resource.data.userId == getUserId()
+                    && request.resource.data.keys().hasAll([
+                      'companyId',
+                      'userId',
+                      'userName',
+                      'action',
+                      'entity',
+                      'entityId',
+                      'timestamp',
+                      'ipAddress',
+                      'diff'
+                    ]);
+
+      // Logs de auditoria jamás podem ser editados ou apagados via client/admin
+      allow update, delete: if false;
+    }
+
+    // Bloqueio padrão para qualquer outra rota não especificada
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
